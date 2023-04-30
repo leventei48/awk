@@ -1,62 +1,50 @@
 #!/usr/bin/awk -f
 
 BEGIN {
-  # X3D fájl fejléce
-  printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-  printf("<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.2//EN\" \"http://www.web3d.org/specifications/x3d-3.2.dtd\">\n")
-  printf("<X3D version=\"3.2\" profile=\"Interchange\">\n")
-  printf("<Scene>\n")
-
-  # Háttér színe
-  printf("<Background skyColor=\"0.2 0.2 0.2\" />\n")
-
-  # Fényforrások
-  printf("<PointLight location=\"0 20 -30\" color=\"1 1 1\" />\n")
-  printf("<PointLight location=\"0 -20 -30\" color=\"1 1 1\" />\n")
+    # az X3D fájl fejlécét létrehozzuk
+    print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    print "<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.3//EN\" \"http://www.web3d.org/specifications/x3d-3.3.dtd\">"
+    print "<X3D version='3.3' profile='Full' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='http://www.web3d.org/specifications/x3d-3.3.xsd'>"
+    print "<Scene>"
 }
 
-# Objektumok
-/sphere/ {
-  # Gömb
-  printf("<Sphere>\n")
-  printf("  <Transform translation=\"%s\" />\n", $2)
-  printf("  <Appearance>\n")
-  printf("    <Material diffuseColor=\"%s\" />\n", $5)
-  printf("  </Appearance>\n")
-  printf("</Sphere>\n")
-}
-
-/plane/ {
-  # Sík
-  printf("<Shape>\n")
-  printf("  <Transform rotation=\"1 0 0 -1.5708\" translation=\"%s\" />\n", $2)
-  printf("  <Appearance>\n")
-  printf("    <Material diffuseColor=\"%s\" />\n", $5)
-  printf("  </Appearance>\n")
-  printf("  <IndexedFaceSet solid=\"false\">\n")
-  printf("    <Coordinate point=\"-10 -10 0 10 -10 0 -10 10 0 10 10 0\" />\n")
-  printf("    <IndexedFaceSet normalPerVertex=\"false\">\n")
-  printf("      <CoordinateIndex>0 1 3 2 -1</CoordinateIndex>\n")
-  printf("    </IndexedFaceSet>\n")
-  printf("  </IndexedFaceSet>\n")
-  printf("</Shape>\n")
-}
-
-/box/ {
-  # Téglatest
-  printf("<Box>\n")
-  printf("  <Transform translation=\"%s\" />\n", $2)
-  printf("  <Appearance>\n")
-  printf("    <Material diffuseColor=\"%s\" />\n", $5)
-  printf("  </Appearance>\n")
-  printf("</Box>\n")
+{
+    # feldolgozzuk az input fájl egy sorát
+    if ($1 == "light_source") {
+        if (NF != 4) {
+            print "Hiba: Hibás szintaxis a fényforrás sorban: " $0 > "/dev/stderr"
+            exit 1
+        }
+        # átalakítjuk a povray fényforrást X3D fényforrássá
+        split($2, position, "[<>, ]+")
+        split($3, color, "[<>, ]+")
+        printf("<PointLight location='%f %f %f' color='%f %f %f'/>\n", position[2], position[3], position[4], color[2], color[3], color[4])
+    } else if ($1 == "plane") {
+        if (NF != 3) {
+            print "Hiba: Hibás szintaxis a síklap sorban: " $0 > "/dev/stderr"
+            exit 1
+        }
+        # átalakítjuk a povray síklapot X3D síklappá
+        split($2, normal, "[<>, ]+")
+        d = $3
+        printf("<Plane equation='%f %f %f %f'/>\n", normal[2], normal[3], normal[4], d)
+    } else if ($1 == "box") {
+        if (NF != 3) {
+            print "Hiba: Hibás szintaxis a doboz sorban: " $0 > "/dev/stderr"
+            exit 1
+        }
+        # átalakítjuk a povray dobozt X3D dobozzá
+        split($2, p1, "[<>, ]+")
+        split($3, p2, "[<>, ]+")
+        printf("<Box size='%f %f %f' center='%f %f %f'/>\n", p2[2]-p1[2], p2[3]-p1[3], p2[4]-p1[4], (p2[2]+p1[2])/2, (p2[3]+p1[3])/2, (p2[4]+p1[4])/2)
+    } else {
+        print "Hiba: Ismeretlen parancs: " $1 > "/dev/stderr"
+        exit 1
+    }
 }
 
 END {
-  # Kamera
-  printf("<Viewpoint position=\"0 0 -10\" orientation=\"0 0 1 0\" />\n")
-  
-  # X3D fájl lezárása
-  printf("</Scene>\n")
-  printf("</X3D>\n")
+    # az X3D fájl záró részét létrehozzuk
+    print "</Scene>"
+    print "</X3D>"
 }
