@@ -1,32 +1,37 @@
 #!/usr/bin/awk -f
 
-# Az AWK változók definiálása
 BEGIN {
+    print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    print "<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.2//EN\" \"http://www.web3d.org/specifications/x3d-3.2.dtd\">"
+    print "<X3D version=\"3.2\" profile=\"Full\">"
+    print "<Scene>"
     sphere_count = 0
     box_count = 0
     triangle_count = 0
-    # Gömbök, dobozok és háromszögek pontjainak koordinátáit tároló változók definiálása
-    sphere_points = ""
-    box_points = ""
-    triangle_points = ""
-    # Egyéb változók definiálása, ha szükséges
 }
 
-# Gömbök feldolgozása
 /^sphere/ {
-    # Az AWK változók frissítése
+    if (NF < 5) {
+        print "Hiba: hiányzó paraméter a", sphere_count+1, ". gömbnél."
+        exit 1
+    }
     sphere_count++
     x[sphere_count] = $2
     y[sphere_count] = $3
     z[sphere_count] = $4
     radius[sphere_count] = $5
-    # Az aktuális gömb koordinátáinak kiírása
-    print "Gömb", sphere_count, "koordinátái:", x[sphere_count], y[sphere_count], z[sphere_count], "sugara:", radius[sphere_count]
+    print "<Transform translation='"$2" "$3" "$4"'>"
+    print "<Shape>"
+    print "<Sphere radius='"$5"' />"
+    print "</Shape>"
+    print "</Transform>"
 }
 
-# Dobozok feldolgozása
 /^box/ {
-    # Az AWK változók frissítése
+    if (NF < 7) {
+        print "Hiba: hiányzó paraméter a", box_count+1, ". doboznál."
+        exit 1
+    }
     box_count++
     x1[box_count] = $2
     y1[box_count] = $3
@@ -34,22 +39,28 @@ BEGIN {
     x2[box_count] = $5
     y2[box_count] = $6
     z2[box_count] = $7
-    # Az aktuális doboz koordinátáinak kiírása
-    print "Doboz", box_count, "koordinátái:", x1[box_count], y1[box_count], z1[box_count], x2[box_count], y2[box_count], z2[box_count]
+    print "<Transform translation='"$2" "$3" "$4"'>"
+    print "<Shape>"
+    print "<Box size='"$5-$2" "$6-$3" "$7-$4"'/>"
+    print "</Shape>"
+    print "</Transform>"
 }
 
-# Háromszögek feldolgozása
 /^triangle/ {
-    # Az AWK változók frissítése
+    if (NF < 10) {
+        print "Hiba: hiányzó paraméter a", triangle_count+1, ". háromszögnél."
+        exit 1
+    }
     triangle_count++
-    triangle_points = triangle_points $2 " " $3 " " $4 " " $5 " " $6 " " $7 " "
-    # Az aktuális háromszög koordinátáinak kiírása
-    print "Háromszög", triangle_count, "koordinátái:", $2, $3, $4, $5, $6, $7
+    triangle_points = triangle_points $2 " " $3 " " $4 " " $5 " " $6 " " $7 " " $8 " " $9 " " $10 " "
+    print "<Shape>"
+    print "<IndexedTriangleSet coordIndex='"triangle_coord_index"'>"
+    print "<Coordinate point='"$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10"'/>"
+    print "</IndexedTriangleSet>"
+    print "</Shape>"
 }
 
-# Az AWK script vége, kiírjuk az eredményeket
 END {
-    print "A fájlban összesen", sphere_count, "gömb található."
-    print "A fájlban összesen", box_count, "doboz található."
-    print "A fájlban összesen", triangle_count, "háromszög található."
+    print "</Scene>"
+    print "</X3D>"
 }
