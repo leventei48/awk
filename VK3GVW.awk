@@ -20,6 +20,9 @@ BEGIN {
     y[sphere_count] = $3
     z[sphere_count] = $4
     radius[sphere_count] = $5
+    gsub(/[<>]/,"",$2)
+    gsub(/[<>]/,"",$3)
+    gsub(/[<>]/,"",$4)
     print "<Transform translation='"$2" "$3" "$4"'>"
     print "<Shape>"
     print "<Sphere radius='"$5"' />"
@@ -39,6 +42,9 @@ BEGIN {
     x2[box_count] = $5
     y2[box_count] = $6
     z2[box_count] = $7
+    gsub(/[<>]/,"",$2)
+    gsub(/[<>]/,"",$3)
+    gsub(/[<>]/,"",$4)
     print "<Transform translation='"$2" "$3" "$4"'>"
     print "<Shape>"
     print "<Box size='"$5-$2" "$6-$3" "$7-$4"'/>"
@@ -53,6 +59,15 @@ BEGIN {
     }
     triangle_count++
     triangle_points = triangle_points $2 " " $3 " " $4 " " $5 " " $6 " " $7 " " $8 " " $9 " " $10 " "
+    gsub(/[<>]/,"",$2)
+    gsub(/[<>]/,"",$3)
+    gsub(/[<>]/,"",$4)
+    gsub(/[<>]/,"",$5)
+    gsub(/[<>]/,"",$6)
+    gsub(/[<>]/,"",$7)
+    gsub(/[<>]/,"",$8)
+    gsub(/[<>]/,"",$9)
+    gsub(/[<>]/,"",$10)
     print "<Shape>"
     print "<IndexedTriangleSet coordIndex='"triangle_coord_index"'>"
     print "<Coordinate point='"$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10"'/>"
